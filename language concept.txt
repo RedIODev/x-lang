@@ -97,6 +97,8 @@ extern "§language§" -> FFI is implicit unsafe
 inline -> inline functions don't have stack frames and are always integrated in the calling function. 
             Inline functions don't exist in asambly and can therefore not be extern and are implicitly const.
 
+//unsigned modifier:
+unsigned -> defines a binary struct to not allow negative values.
 //references and pointers:
 & -> checked reference cannot outlive the source
 * -> unchecked pointer no checks
@@ -114,7 +116,7 @@ public|local(default) [mut] struct §StructName§[<§GenericName§,>]  {
 public|local(default) struct §StructName§: %byteSize% = %defaultValue%; -> Are initialized with a number literal that fits its byteSize.
 
 //tuple structs: 
-public|local(default) [mut] struct §StructName§[<§GenericName§,>](public(default) [mut] §fildName§:§TypeName§,); -> are initialized with round bracets including all its fields. Fields can be accessed by the index operator.
+public|local(default) [mut] [unsigned] struct §StructName§[<§GenericName§,>](public(default) [mut] §fildName§:§TypeName§,); -> are initialized with round bracets including all its fields. Fields can be accessed by the index operator.
 
 //anonymous tuples:
 var [mut] §variableName§:[([§fildName§:]§TypeName§,)] = (§variableName§,); -> anonymous tuples share all features of tuple structs but always immutable and its fields can be named optionally.
@@ -182,7 +184,7 @@ var §variableName§ : [(§TypeName§) -> §ReturnType§] = (§parameterName§) 
 
 ///interfaces:
 
-public|local(default) [const] [unsafe] interface §InterfaceName§[<§GenericName§,>] {
+public|local(default) [const] [inline] [unsafe] interface §InterfaceName§[<§GenericName§,>] {
     //function signatures or default implementations
 }
 
@@ -197,7 +199,9 @@ label: -> labels mark a location in a function that is converted into an asm lab
 ///modules
 public|local|private(default) module §ModuleName§ {
     //functions, modules, structs, interfaces
-}
+} -> enclosing syntax.
+
+public(default) module §ModuleName§; -> file level syntax.
 
 import §ModuleName§;
 
