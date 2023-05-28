@@ -1,0 +1,2 @@
+module red.compiler {
+}

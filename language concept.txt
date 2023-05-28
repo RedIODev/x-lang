@@ -1,0 +1,266 @@
+DOC SYNTAX:
+/// == topic group
+// == topic/comment
+X(default) == default value
+§X§ == user defined name
+%X% == direct expresions
+[X] == optional values
+X|Y == one of values
+-> == description
+
+///reserved symbols:
+"
+,
+[
+]
+{
+}
+=
+/
+%
+&
++
+~
+*
+-
+.
+;
+:
+<
+>
+|
+^
+\
+(
+)
+'
+!
+
+///reserved keywords:
+public
+local
+private
+const
+mut
+struct
+var
+unsafe
+extern
+inline
+interface
+functions
+fp
+->
+type
+as
+import
+module
+new
+delete
+behavior
+
+///reserved operators:
+&
+*
++
+-
+*
+/
+<<
+>>
++=
+-=
+++
+--
+.
+^
+~
+!
+%
+
+///modifiers:
+
+//access modifiers:
+public -> everywhere
+local -> everywhere in the same or child modules
+private -> only in the enclosing element 
+
+//write protection modifier: apply for everything inside them
+const -> compile time constant either value or const function
+mut -> controlls internal mutability of structs and variables
+
+//safety modifiers: apply for everything inside them
+unsafe -> disables all checks allowes raw pointer deref and call of unsafe functions
+extern "§language§" -> FFI is implicit unsafe
+
+//inline modifier:
+inline -> inline functions don't have stack frames and are always integrated in the calling function. 
+            Inline functions don't exist in asambly and can therefore not be extern and are implicitly const.
+
+//references and pointers:
+& -> checked reference cannot outlive the source
+* -> unchecked pointer no checks
+///structs:
+
+//field struct:
+public|local(default) [mut] struct §StructName§[<§GenericName§,>]  {
+    public|local|private(default) [mut] §fieldName§ : §TypeName§;
+    public|local|private(default) const §fieldName§ = %constExpresion%;
+} -> are initialized with a named parameter list in curly braces.
+        Can only be initialized in context where all its fields are visable.
+        For example a struct with a private field can only be initialized in an functions for block.
+
+//binary structs:
+public|local(default) struct §StructName§: %byteSize% = %defaultValue%; -> Are initialized with a number literal that fits its byteSize.
+
+//tuple structs: 
+public|local(default) [mut] struct §StructName§[<§GenericName§,>](public(default) [mut] §fildName§:§TypeName§,); -> are initialized with round bracets including all its fields. Fields can be accessed by the index operator.
+
+//anonymous tuples:
+var [mut] §variableName§:[([§fildName§:]§TypeName§,)] = (§variableName§,); -> anonymous tuples share all features of tuple structs but always immutable and its fields can be named optionally.
+
+//unit structs:
+public|local(default) struct §StructName§[<§GenericName§,>]; -> are initialized with only the struct name and semicolon. 
+
+///function blocks:
+functions[<§GenericName§,>] [for §StructName§ [implement §InterfaceName§]] {
+    //functions
+} -> functions for blocks (without implement) can only be created in the same module as the struct declaration.
+
+///functions:
+every function can be called on its first parameter:
+example:
+functions {
+    foo(string :array<u16>) {}
+
+    bar() {
+        "Foo".foo();
+    }
+}
+
+
+public|local|private(default) [const] [extern "§language§"] [inline] [unsafe] §functionName§[<§GenericName§,>]([mut ]§parameterName§: [& |* |&mut |*mut ]§TypeName§,) [[* |*mut]§ReturnType§] {
+    //code
+}
+
+///variables:
+var [mut] §variableName§:[[& |* |&mut |*mut ]§TypeName§[<§GenericName§,>]] [= %expresion%];
+const §constantName§ = %expression%;
+
+///literals:
+//text literals:
+"" -> Text literal returns array<u16>
+""b -> ASCII literal returns array<u8>
+'' -> Character literal returns a u16
+''b -> ASCII char literal returns u8
+"""
+
+""" -> Text block literal behaves like above including spacing and multi lines after the triple quotes
+
+//number literals:
+0xABC -> hex literal return binary struct default is i32
+123 -> dec literal return binary struct default is i32
+0b1101 -> binary literal return binary struct default is i32
+0.1[E+|-12] -> floating point literal returns f32 or f64
+
+///aliases:
+public|local|private(default) type §AliasName§[<§GenericName§,>] = %typeExpresion%; -> creates a type alias
+
+import §ModuleName§ as §AliasName§;
+
+///function pointer and lamdas:
+
+//function pointer:
+fp(§TypeName§,) §ReturnType§ -> function pointer type definition.
+
+var §variableName§ : [fp(§TypeName§,) §ReturnType§] = &§functionName§; -> taking a reference to a function as a function pointer.
+
+//lambda:
+(§TypeName§) -> §ReturnType§ -> lamda type definition.
+
+var §variableName§ : [(§TypeName§) -> §ReturnType§] = (§parameterName§) -> { }; -> creating a local lamda expresion.
+
+///interfaces:
+
+public|local(default) [const] [unsafe] interface §InterfaceName§[<§GenericName§,>] {
+    //function signatures or default implementations
+}
+
+
+///labels
+label: -> labels mark a location in a function that is converted into an asm label. 
+            Labels can be passed into functions as variables of type "label". 
+            Labels can only be placed in unsafe code.
+            When a label is jumped to that is outside the current function the functions stack frame is automatically poped.
+            Labels passed to a function cannot be passed on into other functions (might be lifted later).
+
+///modules
+public|local|private(default) module §ModuleName§ {
+    //functions, modules, structs, interfaces
+}
+
+import §ModuleName§;
+
+///allocation:
+
+//stack allocation:
+var [mut] §variableName§ : [§parameterName§: §TypeName§[<§GenericName§,>]] = §TypeName§[<§GenericName§,>](§parameterName§); -> creates a new instance  a struct on the stack that will be deleted once the variable dies.
+
+//heap allocation:
+var [mut] §variableName§ : [*mut §TypeName§[<§GenericName§,>]] = unsafe new §TypeName§[<§GenericName§,>](§parameterName§); -> creates a new instance of a struct on the heap that needs to be deleted with delete.
+
+var [mut] §variableName§ : [ref<§TypeName§[<§GenericName§,>]>] = new §TypeName§[<§GenericName§,>](§parameterName§); -> creates a new instance of a struct on the heap wrapped in a ref that will be deleted once the ref variable dies.
+
+delete §variableName§; -> deletes a manually heap allocated pointer. 
+
+
+
+
+
+
+
+
+///behaviors: (beta)
+
+public|local(default) [const] [unsafe] behavior §BehaviorName§ {
+
+    signature {
+label: -> marks a line. Needs to exist in both signature and source.
+%statemet% -> marks a statement that should be copied into source. Needs to exist in both signature and source.
+$§variableName§:§TypeName§ -> marks a variable that is expected and can be used in source.
+    }
+
+    source {
+label: -> marks a line. Needs to exist in both signature and source.
+%statement% -> marks the location a statement from the signature should be copied to. Needs to exist in both signature and source.
+    }
+}
+
+
+// behavior example: 
+
+public const behavior IfStatement {
+
+    signature {
+        if($condition:bool) 
+true:       
+            %s1%
+        else 
+false:      
+            %s2%
+end:
+    }
+
+    source {
+        unsafe {
+            ASM::conditionalJump(condition, true, false);
+true:
+            %s1%
+            ASM::jump(end);
+false:
+            %s2%
+end:
+        }
+    }
+}
+
