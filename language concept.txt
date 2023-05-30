@@ -217,7 +217,10 @@ var [mut] §variableName§ : [ref<§TypeName§[<§GenericName§,>]>] = new §Typ
 
 delete §variableName§; -> deletes a manually heap allocated pointer. 
 
+///compile conditions:
+#if §COMPILE_CONSTANT§
 
+#endif
 
 
 
